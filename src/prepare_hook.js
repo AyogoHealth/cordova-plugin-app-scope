@@ -52,6 +52,9 @@ const configPatches = {
         let continuation = et.SubElement(array, 'string');
         continuation.text = 'activitycontinuation:' + scope.host;
 
+        let credentials = et.SubElement(array, 'string');
+        credentials.text = 'webcredentials:' + scope.host;
+
         return [{
           target: '*/Entitlements-Debug.plist',
           parent: 'com.apple.developer.associated-domains',
