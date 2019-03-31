@@ -50,10 +50,12 @@ The URL scope **must** be HTTPS, **must** end with a trailing slash, and needs t
 
 In addition to rewriting URLs when loaded in the Cordova application, the plugin will also attempt to register the application as a system-wide handler for URLs matching the scope. This requires some additional server-side configuration at the website matching the URL scope:
 
-* iOS: [Setting Up an App's Associated Domains](https://developer.apple.com/documentation/security/password_autofill/setting_up_an_app_s_associated_domains)
+* iOS: [Setting Up an App's Associated Domains](https://developer.apple.com/documentation/uikit/core_app/allowing_apps_and_websites_to_link_to_your_content/enabling_universal_links)
 * Android: [Verify Android App Links](https://developer.android.com/training/app-links/verify-site-associations)
 
 The plugin will take care of setting up the Associated Domains entitlements for iOS and the Intent filters for Android, but you must set up the `assetlinks.json` and `apple-app-site-association` files on the web server.
+
+If you want to allow your iOS app to use web credentials from Safari, you'll also need to include [`webcredentials`](https://developer.apple.com/documentation/security/password_autofill/setting_up_an_app_s_associated_domains) in your `apple-app-site-association` file.
 
 
 ### JavaScript API
