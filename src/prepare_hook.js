@@ -72,6 +72,7 @@ class PatchConfig {
     constructor(context, scope) {
         this.context = context;
         this.scope = scope;
+        this.id = this.name = 'cordova-plugin-app-scope';
     }
 
     getConfigFiles(platform) {
@@ -109,6 +110,6 @@ module.exports = function(context) {
         const patchConfig = new PatchConfig(context, scopeUrl);
         const munger = new common.ConfigChanges.PlatformMunger(platform, platformRoot, platformJson);
 
-        munger.add_config_changes(patchConfig, true).save_all();
+        munger.add_plugin_changes(patchConfig, {}, true, true).save_all();
     });
 }
