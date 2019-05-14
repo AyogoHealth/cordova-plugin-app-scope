@@ -19,6 +19,13 @@ const fs = require('fs');
 
 module.exports = function(context) {
     if (context.opts.platforms.indexOf('ios') >= 0) {
+        const pkg = require('cordova-ios/package.json');
+
+        // Don't need to do this on Cordova iOS 5.x and higher
+        if (parseInt(pkg.version.split('.')[0], 10) > 4) {
+          return;
+        }
+
         console.warn('UPDATING the Xcode Project files');
 
         const encoding = 'utf-8';
