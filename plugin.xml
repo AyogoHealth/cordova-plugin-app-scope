@@ -14,7 +14,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-app-scope" version="1.0.3">
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-app-scope" version="1.2.0">
   <name>cordova-plugin-app-scope</name>
   <description>Cordova plugin for delegating handling of URL scopes to the application.</description>
   <keywords>cordova,ios,android,url,scope</keywords>
