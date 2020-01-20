@@ -23,12 +23,11 @@
   <issues>https://github.com/AyogoHealth/cordova-plugin-app-scope/issues</issues>
 
   <engines>
-    <engine name="cordova-ios" version=">= 4.5.0" />
+    <engine name="cordova-ios" version=">= 5.0.0" />
     <engine name="cordova-android" version=">= 7.0.0" />
   </engines>
 
   <hook type="after_prepare" src="src/prepare_hook.js" />
-  <hook type="after_prepare" src="src/ios/swift-hook.js" />
 
   <platform name="ios">
     <config-file parent="/*" target="config.xml">
@@ -37,7 +36,7 @@
         <param name="onload" value="true" />
       </feature>
 
-      <preference name="SwiftVersion" value="4.0" />
+      <preference name="SwiftVersion" value="5.0" />
     </config-file>
 
     <header-file src="src/ios/CDVAppDelegate+AppScope.h" />

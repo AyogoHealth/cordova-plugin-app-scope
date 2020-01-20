@@ -19,7 +19,7 @@ class CDVAppScopePlugin : CDVPlugin {
     override func pluginInitialize() {
         NotificationCenter.default.addObserver(self,
                 selector: #selector(CDVAppScopePlugin._didFinishLaunchingWithOptions(_:)),
-                name: NSNotification.Name.UIApplicationDidFinishLaunching,
+                name: UIApplication.didFinishLaunchingNotification,
                 object: nil);
 
 
@@ -38,7 +38,7 @@ class CDVAppScopePlugin : CDVPlugin {
             return;
         }
 
-        if let incomingUrl = options?[UIApplicationLaunchOptionsKey.url] as? URL {
+        if let incomingUrl = options?[UIApplication.LaunchOptionsKey.url] as? URL {
             NSLog("APPSCOPE-PLUGIN: Got launched with URL: \(incomingUrl)")
 
             NotificationCenter.default.post(name: NSNotification.Name.CDVPluginHandleOpenURL, object: incomingUrl);
