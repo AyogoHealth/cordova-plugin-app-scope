@@ -61,7 +61,7 @@ class CDVAppScopePlugin : CDVPlugin {
         }
 
         var remapped = String(url.absoluteString.dropFirst(scope.count))
-        if remapped.hasPrefix("#") || remapped.hasPrefix("?") {
+        if remapped.hasPrefix("#") || remapped.hasPrefix("?") || remapped.count == 0 {
             remapped = "index.html" + remapped;
         }
 
