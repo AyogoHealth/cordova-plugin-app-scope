@@ -16,16 +16,31 @@
 
 @objc(CDVAppScopePlugin)
 class CDVAppScopePlugin : CDVPlugin {
+
+    var notificationData: String? = nil;
+
     override func pluginInitialize() {
+
         NotificationCenter.default.addObserver(self,
                 selector: #selector(CDVAppScopePlugin._didFinishLaunchingWithOptions(_:)),
-                name: UIApplication.didFinishLaunchingNotification,
+                name: NSNotification.Name.UIApplicationDidFinishLaunching,
                 object: nil);
 
 
         NotificationCenter.default.addObserver(self,
                 selector: #selector(CDVAppScopePlugin._handleOpenURL(_:)),
                 name: NSNotification.Name.CDVPluginHandleOpenURL,
+                object: nil);
+
+        NotificationCenter.default.addObserver(self,
+                selector: #selector(CDVAppScopePlugin.handlePageLoad),
+                name: NSNotification.Name.CDVPageDidLoad,
+                object: nil);
+
+
+        NotificationCenter.default.addObserver(self,
+                selector: #selector(CDVAppScopePlugin.handleNotificationData),
+                name: NSNotification.Name(rawValue: "AyHandleUrlCustomData"),
                 object: nil);
     }
 
@@ -45,7 +60,25 @@ class CDVAppScopePlugin : CDVPlugin {
         }
     }
 
+    @objc internal func handlePageLoad() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            if (self.notificationData != nil) {
+                self.webViewEngine.evaluateJavaScript("window.dispatchEvent(new CustomEvent('notificationClicked', { detail: '\(self.notificationData!)' }));", completionHandler: nil)
+            }
+        }
+    }
 
+    @objc internal func handleNotificationData(_ notificationData : NSNotification) {
+        guard let dataObject = notificationData.object else {
+            return;
+        }
+
+        if let notificationJSONData = try? JSONSerialization.data(withJSONObject: dataObject,options: []) {
+            let notificationTextData = String(data: notificationJSONData,
+                                       encoding: .utf8)
+            self.notificationData = notificationTextData;
+        }
+    }
 
     @objc internal func _handleOpenURL(_ notification : NSNotification) {
         guard let url = notification.object as? URL else {
