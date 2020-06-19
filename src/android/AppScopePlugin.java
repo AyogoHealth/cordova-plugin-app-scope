@@ -128,20 +128,20 @@ public class AppScopePlugin extends CordovaPlugin {
         try {
             CordovaPlugin codepush = this.webView.getPluginManager().getPlugin("CodePush");
             if (codepush != null) {
-                Class codepushClass = codepush.getClass();
+                Class<?> codepushClass = codepush.getClass();
                 Field pkgMgr = codepushClass.getDeclaredField("codePushPackageManager");
                 pkgMgr.setAccessible(true);
 
                 Object codePushPackageManager = pkgMgr.get(codepush);
 
-                Class cppmClass = pkgMgr.getType();
+                Class<?> cppmClass = pkgMgr.getType();
 
                 Method getCurrentPackageMetadata = cppmClass.getDeclaredMethod("getCurrentPackageMetadata");
 
                 Object packageMetadata = getCurrentPackageMetadata.invoke(codePushPackageManager);
 
                 if (packageMetadata != null) {
-                    Class metadataClass = getCurrentPackageMetadata.getReturnType();
+                    Class<?> metadataClass = getCurrentPackageMetadata.getReturnType();
                     Field localPathField = metadataClass.getDeclaredField("localPath");
                     String localPath = (String)localPathField.get(packageMetadata);
 
