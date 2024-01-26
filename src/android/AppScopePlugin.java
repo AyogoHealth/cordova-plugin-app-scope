@@ -123,38 +123,87 @@ public class AppScopePlugin extends CordovaPlugin {
             remapped = "index.html" + remapped;
         }
 
-        String resultURL = "file:///android_asset/www/" + remapped;
+        String resultURL = getLaunchUrlPrefix() + remapped;
 
+        String codePushPrefix = tryFindCodePushPrefix();
+        if (codePushPrefix != null) {
+            resultURL = codePushPrefix + remapped;
+        }
+
+        LOG.d(TAG, "Result URL is " + resultURL);
+        return Uri.parse(resultURL);
+    }
+
+    /**
+     * Get the default prefix for Cordova web assets.
+     *
+     * This needs to determine whether we're serving from a file:/// URL or
+     * from a scheme/hostname, and return the correct prefix for the remapped
+     * URL.
+     */
+    private String getLaunchUrlPrefix() {
+        Integer major = 0;
+        try {
+            major = Integer.parseInt(CordovaWebView.CORDOVA_VERSION.split("\\.", 2)[0]);
+        } catch (Exception e) {
+            major = 0;
+        }
+
+        // Before Cordova Android 10, we always use file:/// URLs
+        if ((major > 0 && major < 10) || preferences.getBoolean("AndroidInsecureFileModeEnabled", false)) {
+            return "file:///android_asset/www/";
+        } else {
+            String scheme = preferences.getString("scheme", "https").toLowerCase();
+            String hostname = preferences.getString("hostname", "localhost").toLowerCase();
+
+            if (!scheme.contentEquals("http") && !scheme.contentEquals("https")) {
+                scheme = "https";
+            }
+
+            return scheme + "://" + hostname + '/';
+        }
+    }
+
+    /**
+     * Try to find a CodePush path prefix for the current version.
+     *
+     * This conditionally checks if the CodePush plugin is installed and then
+     * tries to look up the directory for the current CodePush package version,
+     * so that the right prefix can be used for a remapped URL within the
+     * CodePush package.
+     */
+    private String tryFindCodePushPrefix() {
         try {
             CordovaPlugin codepush = this.webView.getPluginManager().getPlugin("CodePush");
-            if (codepush != null) {
-                Class<?> codepushClass = codepush.getClass();
-                Field pkgMgr = codepushClass.getDeclaredField("codePushPackageManager");
-                pkgMgr.setAccessible(true);
+            if (codepush == null) {
+                return null;
+            }
 
-                Object codePushPackageManager = pkgMgr.get(codepush);
+            Class<?> codepushClass = codepush.getClass();
+            Field pkgMgr = codepushClass.getDeclaredField("codePushPackageManager");
+            pkgMgr.setAccessible(true);
 
-                Class<?> cppmClass = pkgMgr.getType();
+            Object codePushPackageManager = pkgMgr.get(codepush);
 
-                Method getCurrentPackageMetadata = cppmClass.getDeclaredMethod("getCurrentPackageMetadata");
+            Class<?> cppmClass = pkgMgr.getType();
 
-                Object packageMetadata = getCurrentPackageMetadata.invoke(codePushPackageManager);
+            Method getCurrentPackageMetadata = cppmClass.getDeclaredMethod("getCurrentPackageMetadata");
 
-                if (packageMetadata != null) {
-                    Class<?> metadataClass = getCurrentPackageMetadata.getReturnType();
-                    Field localPathField = metadataClass.getDeclaredField("localPath");
-                    String localPath = (String)localPathField.get(packageMetadata);
+            Object packageMetadata = getCurrentPackageMetadata.invoke(codePushPackageManager);
 
-                    if (localPath != null) {
-                        resultURL = "file://" + this.cordova.getActivity().getFilesDir() + localPath + "www/" + remapped;
-                    }
+            if (packageMetadata != null) {
+                Class<?> metadataClass = getCurrentPackageMetadata.getReturnType();
+                Field localPathField = metadataClass.getDeclaredField("localPath");
+                String localPath = (String)localPathField.get(packageMetadata);
+
+                if (localPath != null) {
+                    return "file://" + this.cordova.getActivity().getFilesDir() + localPath + "www/";
                 }
             }
         } catch (Exception e) {
           LOG.e(TAG, Log.getStackTraceString(e));
         }
 
-        LOG.d(TAG, "Result URL is " + resultURL);
-        return Uri.parse(resultURL);
+        return null;
     }
 }
