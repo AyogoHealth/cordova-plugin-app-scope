@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import "Cordova/CDVAppDelegate.h"
+#import "Cordova/Cordova.h"
 
 @interface CDVAppDelegate (appScope)
 
