@@ -41,7 +41,7 @@
 
     <header-file src="src/ios/CDVAppDelegate+AppScope.h" />
     <source-file src="src/ios/CDVAppDelegate+AppScope.m" />
-    <source-file src="src/ios/CDVAppScopePlugin.swift" />
+    <source-file src="src/ios/AppScopePlugin.swift" />
   </platform>
 
 

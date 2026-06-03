@@ -18,22 +18,23 @@
 import Cordova
 #endif
 
-@objc class CDVAppScopePlugin : CDVPlugin {
+@objc(CDVAppScopePlugin)
+class AppScopePlugin : CDVPlugin {
     override func pluginInitialize() {
         NotificationCenter.default.addObserver(self,
-                selector: #selector(CDVAppScopePlugin._didFinishLaunchingWithOptions(_:)),
+                selector: #selector(AppScopePlugin._didFinishLaunchingWithOptions(_:)),
                 name: UIApplication.didFinishLaunchingNotification,
                 object: nil);
 
 
         NotificationCenter.default.addObserver(self,
-                selector: #selector(CDVAppScopePlugin._handleOpenURL(_:)),
+                selector: #selector(AppScopePlugin._handleOpenURL(_:)),
                 name: NSNotification.Name.CDVPluginHandleOpenURL,
                 object: nil);
 
 
         NotificationCenter.default.addObserver(self,
-                selector: #selector(CDVAppScopePlugin._handleContinueUserActivity(_:)),
+                selector: #selector(AppScopePlugin._handleContinueUserActivity(_:)),
                 name: NSNotification.Name("CDVPluginContinueUserActivityNotification"),
                 object: nil);
     }
