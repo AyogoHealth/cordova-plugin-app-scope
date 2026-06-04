@@ -14,18 +14,28 @@
  * limitations under the License.
  */
 
+#if canImport(Cordova)
+import Cordova
+#endif
+
 @objc(CDVAppScopePlugin)
-class CDVAppScopePlugin : CDVPlugin {
+class AppScopePlugin : CDVPlugin {
     override func pluginInitialize() {
         NotificationCenter.default.addObserver(self,
-                selector: #selector(CDVAppScopePlugin._didFinishLaunchingWithOptions(_:)),
+                selector: #selector(AppScopePlugin._didFinishLaunchingWithOptions(_:)),
                 name: UIApplication.didFinishLaunchingNotification,
                 object: nil);
 
 
         NotificationCenter.default.addObserver(self,
-                selector: #selector(CDVAppScopePlugin._handleOpenURL(_:)),
+                selector: #selector(AppScopePlugin._handleOpenURL(_:)),
                 name: NSNotification.Name.CDVPluginHandleOpenURL,
+                object: nil);
+
+
+        NotificationCenter.default.addObserver(self,
+                selector: #selector(AppScopePlugin._handleContinueUserActivity(_:)),
+                name: NSNotification.Name("CDVPluginContinueUserActivityNotification"),
                 object: nil);
     }
 
@@ -65,8 +75,10 @@ class CDVAppScopePlugin : CDVPlugin {
             remapped = "index.html" + remapped;
         }
 
-        let startURL = URL(string: remapped)
-        let startFilePath = self.commandDelegate.path(forResource: startURL?.path)
+        guard let startURL = URL(string: remapped) else {
+            return
+        }
+        let startFilePath: String? = self.commandDelegate.path(forResource: startURL.path)
 
         var appURL = URL(fileURLWithPath: startFilePath!)
 
@@ -79,5 +91,23 @@ class CDVAppScopePlugin : CDVPlugin {
 
         let appReq = URLRequest(url: appURL, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 20.0)
         self.webViewEngine.load(appReq)
+    }
+
+
+
+    @objc internal func _handleContinueUserActivity(_ notification : NSNotification) {
+        guard let activity = notification.object as? NSUserActivity else {
+            return
+        }
+
+        if activity.activityType == NSUserActivityTypeBrowsingWeb {
+            guard let incomingUrl = activity.webpageURL else {
+                return
+            }
+
+            NSLog("APPSCOPE-PLUGIN: continueUserActivity with URL: \(incomingUrl)")
+
+            NotificationCenter.default.post(name: NSNotification.Name.CDVPluginHandleOpenURL, object: incomingUrl);
+        }
     }
 }

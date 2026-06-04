@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  test-ios:
+    name: "iOS Tests"
+    runs-on: macos-26
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Use Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "lts/*"
+
+      - name: Run iOS Unit Tests
+        run: |
+          xcodebuild test -quiet \
+            -project AppScopePluginTests.xcodeproj \
+            -scheme AppScopePluginTests \
+            -testPlan UnitTests \
+            -destination "platform=iOS Simulator,name=iPhone 17e"
+        working-directory: ./tests/ios

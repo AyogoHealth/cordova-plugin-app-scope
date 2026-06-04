@@ -20,13 +20,9 @@
 
 - (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray *restorableObjects))restorationHandler;
 {
-    if ([userActivity.activityType isEqualToString:NSUserActivityTypeBrowsingWeb]) {
-        [[NSNotificationCenter defaultCenter] postNotification:[NSNotification notificationWithName:@"CDVPluginContinueUserActivityNotification" object:userActivity]];
+    [[NSNotificationCenter defaultCenter] postNotification:[NSNotification notificationWithName:@"CDVPluginContinueUserActivityNotification" object:userActivity]];
 
-        return YES;
-    }
-
-    return NO;
+    return [userActivity.activityType isEqualToString:NSUserActivityTypeBrowsingWeb];
 }
 
 @end
