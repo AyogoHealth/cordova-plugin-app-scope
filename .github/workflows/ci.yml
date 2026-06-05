@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  test-android:
+    name: "Android Tests"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Use Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "lts/*"
+
+      - name: Use Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up gradle
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          gradle-version: 9.3.1
+
+      - name: Run Android Unit Tests
+        run: |
+          gradle test
+        working-directory: ./tests/android

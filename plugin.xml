@@ -53,6 +53,6 @@
       </feature>
     </config-file>
 
-    <source-file src="src/android/AppScopePlugin.java" target-dir="src/com/ayogo/cordova/appscope" />
+    <source-file src="src/android/com/ayogo/cordova/appscope/AppScopePlugin.java" target-dir="src/com/ayogo/cordova/appscope" />
   </platform>
 </plugin>
