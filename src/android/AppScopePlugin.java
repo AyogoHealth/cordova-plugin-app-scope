@@ -15,7 +15,6 @@
  */
 package com.ayogo.cordova.appscope;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
@@ -24,11 +23,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.LOG;
 
 
 public class AppScopePlugin extends CordovaPlugin {
-    private String appScope;
+    protected String appScope;
 
     private final String TAG = "AppScopePlugin";
 
@@ -58,13 +58,16 @@ public class AppScopePlugin extends CordovaPlugin {
      */
     @Override
     public void onNewIntent(Intent intent) {
-        if (intent == null || !intent.getAction().equals(Intent.ACTION_VIEW)) {
+        if (intent == null || intent.getAction() == null || !intent.getAction().equals(Intent.ACTION_VIEW)) {
             return;
         }
 
         final Uri intentUri = intent.getData();
+        if (intentUri == null) {
+            return;
+        }
 
-        LOG.i(TAG, "Handling intent URL: " + intentUri.toString());
+        LOG.i(TAG, "Handling intent URL: " + intentUri);
 
         final Uri remapped = this.remapUri(intentUri);
 
@@ -79,7 +82,7 @@ public class AppScopePlugin extends CordovaPlugin {
      */
     @Override
     public Boolean shouldAllowRequest(String url) {
-        if (url.startsWith(this.appScope)) {
+        if (this.appScope != null && url.startsWith(this.appScope)) {
             return true;
         }
 
@@ -94,7 +97,7 @@ public class AppScopePlugin extends CordovaPlugin {
      */
     @Override
     public Boolean shouldAllowNavigation(String url) {
-        if (url.startsWith(this.appScope)) {
+        if (this.appScope != null && url.startsWith(this.appScope)) {
             return true;
         }
 
@@ -109,7 +112,7 @@ public class AppScopePlugin extends CordovaPlugin {
      */
     @Override
     public Uri remapUri(Uri uri) {
-        if (!uri.toString().startsWith(this.appScope)) {
+        if (this.appScope == null || !uri.toString().startsWith(this.appScope)) {
             return null;
         }
 
@@ -119,42 +122,91 @@ public class AppScopePlugin extends CordovaPlugin {
             remapped = remapped.substring(1);
         }
 
-        if (remapped.startsWith("#") || remapped.startsWith("?") || remapped.length() == 0) {
+        if (remapped.startsWith("#") || remapped.startsWith("?") || remapped.isEmpty()) {
             remapped = "index.html" + remapped;
         }
 
-        String resultURL = "file:///android_asset/www/" + remapped;
+        String resultURL = getLaunchUrlPrefix() + remapped;
 
+        String codePushPrefix = tryFindCodePushPrefix();
+        if (codePushPrefix != null) {
+            resultURL = codePushPrefix + remapped;
+        }
+
+        LOG.d(TAG, "Result URL is " + resultURL);
+        return Uri.parse(resultURL);
+    }
+
+    /**
+     * Get the default prefix for Cordova web assets.
+     *
+     * This needs to determine whether we're serving from a file:/// URL or
+     * from a scheme/hostname, and return the correct prefix for the remapped
+     * URL.
+     */
+    private String getLaunchUrlPrefix() {
+        int major = 0;
         try {
-            CordovaPlugin codepush = this.webView.getPluginManager().getPlugin("CodePush");
-            if (codepush != null) {
-                Class<?> codepushClass = codepush.getClass();
-                Field pkgMgr = codepushClass.getDeclaredField("codePushPackageManager");
-                pkgMgr.setAccessible(true);
+            major = Integer.parseInt(CordovaWebView.CORDOVA_VERSION.split("\\.", 2)[0]);
+        } catch (Exception e) {
+            /* Ignore, let major default to 0 */
+        }
 
-                Object codePushPackageManager = pkgMgr.get(codepush);
+        // Before Cordova Android 10, we always use file:/// URLs
+        if ((major > 0 && major < 10) || preferences.getBoolean("AndroidInsecureFileModeEnabled", false)) {
+            return "file:///android_asset/www/";
+        } else {
+            String scheme = preferences.getString("scheme", "https").toLowerCase();
+            String hostname = preferences.getString("hostname", "localhost").toLowerCase();
 
-                Class<?> cppmClass = pkgMgr.getType();
+            if (!scheme.contentEquals("http") && !scheme.contentEquals("https")) {
+                scheme = "https";
+            }
 
-                Method getCurrentPackageMetadata = cppmClass.getDeclaredMethod("getCurrentPackageMetadata");
+            return scheme + "://" + hostname + '/';
+        }
+    }
 
-                Object packageMetadata = getCurrentPackageMetadata.invoke(codePushPackageManager);
+    /**
+     * Try to find a CodePush path prefix for the current version.
+     *
+     * This conditionally checks if the CodePush plugin is installed and then
+     * tries to look up the directory for the current CodePush package version,
+     * so that the right prefix can be used for a remapped URL within the
+     * CodePush package.
+     */
+    private String tryFindCodePushPrefix() {
+        try {
+            CordovaPlugin codePush = this.webView.getPluginManager().getPlugin("CodePush");
+            if (codePush == null) {
+                return null;
+            }
 
-                if (packageMetadata != null) {
-                    Class<?> metadataClass = getCurrentPackageMetadata.getReturnType();
-                    Field localPathField = metadataClass.getDeclaredField("localPath");
-                    String localPath = (String)localPathField.get(packageMetadata);
+            Class<?> codepushClass = codePush.getClass();
+            Field pkgMgr = codepushClass.getDeclaredField("codePushPackageManager");
+            pkgMgr.setAccessible(true);
 
-                    if (localPath != null) {
-                        resultURL = "file://" + this.cordova.getActivity().getFilesDir() + localPath + "www/" + remapped;
-                    }
+            Object codePushPackageManager = pkgMgr.get(codePush);
+
+            Class<?> cppmClass = pkgMgr.getType();
+
+            Method getCurrentPackageMetadata = cppmClass.getDeclaredMethod("getCurrentPackageMetadata");
+
+            Object packageMetadata = getCurrentPackageMetadata.invoke(codePushPackageManager);
+
+            if (packageMetadata != null) {
+                Class<?> metadataClass = getCurrentPackageMetadata.getReturnType();
+                Field localPathField = metadataClass.getDeclaredField("localPath");
+                String localPath = (String)localPathField.get(packageMetadata);
+
+                if (localPath != null) {
+                    return "file://" + this.cordova.getActivity().getFilesDir() + localPath + "www/";
                 }
             }
         } catch (Exception e) {
           LOG.e(TAG, Log.getStackTraceString(e));
         }
 
-        LOG.d(TAG, "Result URL is " + resultURL);
-        return Uri.parse(resultURL);
+        return null;
     }
 }
