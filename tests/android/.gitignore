@@ -1,0 +1,9 @@
+build/
+.gradle/
+.idea/
+gradle/
+gradlew*
+local.properties
+src/main/java/com/ayogo/cordova/appscope/AppScopePlugin.java
+src/main/assets/
+src/main/res/
