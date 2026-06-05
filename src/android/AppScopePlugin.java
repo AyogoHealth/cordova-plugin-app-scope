@@ -28,7 +28,7 @@ import org.apache.cordova.LOG;
 
 
 public class AppScopePlugin extends CordovaPlugin {
-    private String appScope;
+    protected String appScope;
 
     private final String TAG = "AppScopePlugin";
 
@@ -58,13 +58,16 @@ public class AppScopePlugin extends CordovaPlugin {
      */
     @Override
     public void onNewIntent(Intent intent) {
-        if (intent == null || !intent.getAction().equals(Intent.ACTION_VIEW)) {
+        if (intent == null || intent.getAction() == null || !intent.getAction().equals(Intent.ACTION_VIEW)) {
             return;
         }
 
         final Uri intentUri = intent.getData();
+        if (intentUri == null) {
+            return;
+        }
 
-        LOG.i(TAG, "Handling intent URL: " + intentUri.toString());
+        LOG.i(TAG, "Handling intent URL: " + intentUri);
 
         final Uri remapped = this.remapUri(intentUri);
 
@@ -79,7 +82,7 @@ public class AppScopePlugin extends CordovaPlugin {
      */
     @Override
     public Boolean shouldAllowRequest(String url) {
-        if (url.startsWith(this.appScope)) {
+        if (this.appScope != null && url.startsWith(this.appScope)) {
             return true;
         }
 
@@ -94,7 +97,7 @@ public class AppScopePlugin extends CordovaPlugin {
      */
     @Override
     public Boolean shouldAllowNavigation(String url) {
-        if (url.startsWith(this.appScope)) {
+        if (this.appScope != null && url.startsWith(this.appScope)) {
             return true;
         }
 
@@ -109,7 +112,7 @@ public class AppScopePlugin extends CordovaPlugin {
      */
     @Override
     public Uri remapUri(Uri uri) {
-        if (!uri.toString().startsWith(this.appScope)) {
+        if (this.appScope == null || !uri.toString().startsWith(this.appScope)) {
             return null;
         }
 
@@ -119,7 +122,7 @@ public class AppScopePlugin extends CordovaPlugin {
             remapped = remapped.substring(1);
         }
 
-        if (remapped.startsWith("#") || remapped.startsWith("?") || remapped.length() == 0) {
+        if (remapped.startsWith("#") || remapped.startsWith("?") || remapped.isEmpty()) {
             remapped = "index.html" + remapped;
         }
 
