@@ -1,17 +1,17 @@
 /**
- * Copyright 2018 Ayogo Health Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+    Copyright 2018 Ayogo Health Inc.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        https://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
  */
 package com.ayogo.cordova.appscope;
 
@@ -92,7 +92,7 @@ public class AppScopePlugin extends CordovaPlugin {
 
     /**
      * Hook for blocking navigation by the Cordova WebView.
-     *
+     * <p>
      * This applies both to top-level and iframe navigations.
      */
     @Override
@@ -107,7 +107,7 @@ public class AppScopePlugin extends CordovaPlugin {
 
     /**
      * Hook for redirecting requests.
-     *
+     * <p>
      * Applies to WebView requests as well as requests made by plugins.
      */
     @Override
@@ -139,7 +139,7 @@ public class AppScopePlugin extends CordovaPlugin {
 
     /**
      * Get the default prefix for Cordova web assets.
-     *
+     * <p>
      * This needs to determine whether we're serving from a file:/// URL or
      * from a scheme/hostname, and return the correct prefix for the remapped
      * URL.
@@ -169,7 +169,7 @@ public class AppScopePlugin extends CordovaPlugin {
 
     /**
      * Try to find a CodePush path prefix for the current version.
-     *
+     * <p>
      * This conditionally checks if the CodePush plugin is installed and then
      * tries to look up the directory for the current CodePush package version,
      * so that the right prefix can be used for a remapped URL within the
